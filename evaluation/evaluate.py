@@ -200,6 +200,8 @@ def load_target_comments(
     builder = {
         "claude": build_target_comments_from_claude,
         "codex": build_target_comments_from_codex,  # 独立实现，非别名
+        # myagent 产出与 codex 同构的 review_output（start_line/end_line）
+        "myagent": build_target_comments_from_codex,
     }.get(reviewer, build_target_comments_from_ocr)
     return builder(result)
 

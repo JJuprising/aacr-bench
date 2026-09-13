@@ -26,6 +26,7 @@ import evaluate
 from repo_utils import RepoError, log
 from reviewers import claude as claude_reviewer
 from reviewers import codex as codex_reviewer
+from reviewers import myagent as myagent_reviewer
 from reviewers import ocr as ocr_reviewer
 from schema import ReviewInstance, load_instances
 
@@ -90,6 +91,14 @@ def _review_one_instance(
                 timeout_minutes=timeout_minutes,
                 preview=preview,
             )
+        if reviewer == "myagent":
+            return myagent_reviewer.review_instance(
+                instance=instance,
+                repo_dir=repo_dir,
+                results_dir=results_dir,
+                timeout_minutes=timeout_minutes,
+                preview=preview,
+            )
         return claude_reviewer.review_instance(
             instance=instance,
             repo_dir=repo_dir,
@@ -146,6 +155,9 @@ def run_review_stage(
             model_desc = reviewer_env.get(config.CODEX_MODEL_VAR, "(codex default)")
             log(f"Using model={model_desc}")
             log(f"CODEX_HOME = {codex_home}")
+    elif reviewer == "myagent":
+        myagent_reviewer.ensure_agent_available()
+        myagent_reviewer.check_env(preview)
     else:
         raise ValueError(f"未知的 reviewer: {reviewer}")
 
@@ -363,7 +375,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     run_parser.add_argument(
         "--reviewer",
-        choices=["ocr", "claude", "codex"],
+        choices=["ocr", "claude", "codex", "myagent"],
         required=True,
         help="使用哪个评审器",
     )
